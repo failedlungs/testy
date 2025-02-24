@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Agent Example</title>
+</head>
+<body>
+  <h1>Your User Agent:</h1>
+  <p id="userAgent"></p>
+
+  <script>
+    const userAgent = navigator.userAgent;
+    document.getElementById("userAgent").textContent = userAgent;
+
+    // Optional: Parse the user agent string for specific information
+    function getBrowser(userAgent) {
+      if (userAgent.indexOf("Chrome") > -1) {
+        return "Chrome";
+      } else if (userAgent.indexOf("Firefox") > -1) {
+        return "Firefox";
+      } else if (userAgent.indexOf("Safari") > -1) {
+        return "Safari";
+      } else if (userAgent.indexOf("Edge") > -1) {
+        return "Edge";
+      } else if (userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR") > -1) {
+        return "Opera";
+      } else if (userAgent.indexOf("MSIE") > -1 || userAgent.indexOf("Trident/") > -1) {
+        return "Internet Explorer";
+      } else {
+        return "Unknown";
+      }
+    }
+
+    function getOperatingSystem(userAgent) {
+        if (userAgent.indexOf("Windows NT") > -1) {
+            return "Windows";
+        } else if (userAgent.indexOf("Macintosh") > -1) {
+            return "macOS";
+        } else if (userAgent.indexOf("Linux") > -1) {
+            return "Linux";
+        } else if (userAgent.indexOf("Android") > -1) {
+            return "Android";
+        } else if (userAgent.indexOf("iOS") > -1) {
+            return "iOS";
+        } else {
+            return "Unknown";
+        }
+    }
+
+    const browser = getBrowser(userAgent);
+    const os = getOperatingSystem(userAgent);
+
+    document.write("<p>Browser: " + browser + "</p>");
+    document.write("<p>Operating System: " + os + "</p>");
+
+  </script>
+</body>
+</html>
