@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Long Text Encryption/Decryption</title>
+</head>
+<body>
+
+  <h1>Long Text Encryption/Decryption</h1>
+
+  <div>
+    <label for="originalText">Original Text:</label><br>
+    <textarea id="originalText" rows="5" cols="80"></textarea>
+  </div>
+
+  <br>
+
+  <div>
+    <label for="encryptionKey">Encryption Key (Hexadecimal, 64 characters for AES-256):</label><br>
+    <input type="text" id="encryptionKey" size="64">
+  </div>
+
+  <br>
+
+  <button onclick="encryptText()">Encrypt</button>
+
+  <br><br>
+
+  <div>
+    <label for="encryptedText">Encrypted Text:</label><br>
+    <textarea id="encryptedText" rows="10" cols="80" readonly></textarea>
+  </div>
+
+  <br>
+
+  <button onclick="decryptText()">Decrypt</button>
+
+  <br><br>
+
+  <div>
+    <label for="decryptedText">Decrypted Text:</label><br>
+    <textarea id="decryptedText" rows="5" cols="80" readonly></textarea>
+  </div>
+
+  <script>
+    async function encryptText() {
+      const originalText = document.getElementById("originalText").value;
+      const keyHex = document.getElementById("encryptionKey").value;
+
+      if (keyHex.length !== 64 || !/^[0-9a-fA-F]+$/.test(keyHex)) {
+        alert("Encryption key must be 64 hexadecimal characters.");
+        return;
+      }
+
+      const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+      const iv = crypto.getRandomValues(new Uint8Array(16));
+
+      try {
+        const encryptedBuffer = await crypto.subtle.encrypt(
+          {
+            name: "AES-CBC",
+            iv: iv,
+          },
+          await crypto.subtle.importKey(
+            "raw",
+            keyBytes,
+            { name: "AES-CBC", length: 256 },
+            false,
+            ["encrypt"]
+          ),
+          new TextEncoder().encode(originalText)
+        );
+
+        const combined = new Uint8Array([...iv, ...new Uint8Array(encryptedBuffer)]);
+        const encryptedBase64 = btoa(String.fromCharCode(...combined));
+
+        document.getElementById("encryptedText").value = encryptedBase64;
+
+      } catch (error) {
+        console.error("Encryption error:", error);
+        alert("Encryption failed.");
+      }
+    }
+
+    async function decryptText() {
+      const encryptedBase64 = document.getElementById("encryptedText").value;
+      const keyHex = document.getElementById("encryptionKey").value;
+
+      if (keyHex.length !== 64 || !/^[0-9a-fA-F]+$/.test(keyHex)) {
+        alert("Encryption key must be 64 hexadecimal characters.");
+        return;
+      }
+
+      const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+      try {
+        const combinedBytes = new Uint8Array(atob(encryptedBase64).split('').map(char => char.charCodeAt(0)));
+        const iv = combinedBytes.slice(0, 16);
+        const encryptedData = combinedBytes.slice(16);
+
+        const decryptedBuffer = await crypto.subtle.decrypt(
+          {
+            name: "AES-CBC",
+            iv: iv,
+          },
+          await crypto.subtle.importKey(
+            "raw",
+            keyBytes,
+            { name: "AES-CBC", length: 256 },
+            false,
+            ["decrypt"]
+          ),
+          encryptedData
+        );
+
+        const decryptedText = new TextDecoder().decode(decryptedBuffer);
+        document.getElementById("decryptedText").value = decryptedText;
+
+      } catch (error) {
+        console.error("Decryption error:", error);
+        alert("Decryption failed (likely incorrect key or encrypted data).");
+      }
+    }
+  </script>
+
+</body>
+</html>
